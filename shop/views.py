@@ -29,3 +29,10 @@ def customer_update(request, pk):
     else:
         form = CustomerForm(instance=customer)
     return render(request, 'shop/customer_form.html', {'form': form})
+
+def customer_delete(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    if request.method == 'POST':
+        customer.delete()
+        return redirect('customer_list')
+    return render(request, 'shop/customer_confirm_delete.html', {'customer': customer })
