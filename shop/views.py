@@ -1,6 +1,6 @@
-from django.shortcuts import render, redirect, get_object_or_404 #third party imports are placed before local imports
-from .models import Customer
-from .forms import CustomerForm
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Customer, Product
+from .forms import CustomerForm, ProductForm
 
 def test_base(request):
     return render(request, 'shop/base.html')
@@ -35,4 +35,36 @@ def customer_delete(request, pk):
     if request.method == 'POST':
         customer.delete()
         return redirect('customer_list')
-    return render(request, 'shop/customer_confirm_delete.html', {'customer': customer })
+    return render(request, 'shop/customer_confirm_delete.html', {'customer': customer})
+
+def product_list(request):
+    products = Product.objects.all()     
+    return render(request, 'shop/product_list.html', {'products': products})
+
+def product_create(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm()
+    return render(request, 'shop/product_form.html', {'form': form})
+
+def product_update(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'shop/product_form.html', {'form': form})
+
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        return redirect('product_list')
+    return render(request, 'shop/product_confirm_delete.html', {'product': product})

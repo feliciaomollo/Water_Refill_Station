@@ -1,0 +1,31 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<h2>Products</h2>
+
+<a href="{% url 'product_create' %}" class="btn btn-primary mb-3">Add Product</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Size</th>
+            <th>Price (KES)</th>
+            <th>Stock Quantity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.size }}</td>
+            <td>{{ product.price }}</td>
+            <td>{{ product.stock_quantity }}</td>
+            <td>
+                <a href="{% url 'product_update' product.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'product_delete' product.pk %}" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
