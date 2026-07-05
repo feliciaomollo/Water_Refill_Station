@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Customer, Product
-from .forms import CustomerForm, ProductForm
+from .models import Customer, Product, Sale
+from .forms import CustomerForm, ProductForm, SaleForm
 
 def test_base(request):
     return render(request, 'shop/base.html')
@@ -68,3 +68,39 @@ def product_delete(request, pk):
         product.delete()
         return redirect('product_list')
     return render(request, 'shop/product_confirm_delete.html', {'product': product})
+
+def sale_create(request):
+    if request.method == 'POST':
+        form = SaleForm(request.POST)
+        if form.is_valid():
+            sale = form.save(commit=False)  
+            sale.total_amount = sale.quantity * sale.product.price
+            sale.save()
+            return redirect('sale_list')
+    else:
+        form = SaleForm()
+    return render(request, 'shop/sale_form.html', {'form': form})
+
+def sale_list(request):
+    sales = Sale.objects.all()
+    return render(request, 'shop/sale_list.html', {'sales': sales})
+
+def sale_update(request, pk):
+    sale = get_object_or_404(Sale, pk=pk)
+    if request.method == 'POST':
+        form = SaleForm(request.POST, instance=sale)
+        if form.is_valid():
+            sale = form.save(commit=False)  
+            sale.total_amount = sale.quantity * sale.product.price
+            sale.save()
+            return redirect('sale_list')
+    else:
+        form = SaleForm(instance=sale)
+    return render(request, 'shop/sale_form.html', {'form': form})
+
+def sale_delete(request, pk):
+    sale = get_object_or_404(Sale, pk=pk)
+    if request.method == 'POST':
+        sale.delete()
+        return redirect('sale_list')
+    return render(request, 'shop/sale_confirm_delete.html', {'sale': sale})
