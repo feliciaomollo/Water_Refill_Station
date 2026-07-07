@@ -1,0 +1,76 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Dashboard | Water Shop{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Dashboard</h2>
+
+<!-- Stat Cards Row -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+        <div class="card text-white bg-primary h-100">
+            <div class="card-body">
+                <h6 class="card-title">Today's Sales</h6>
+                <h2 class="card-text">{{ today_sales_count }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <h6 class="card-title">Today's Revenue</h6>
+                <h2 class="card-text">KES {{ today_revenue }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-danger h-100">
+            <div class="card-body">
+                <h6 class="card-title">Unpaid Sales</h6>
+                <h2 class="card-text">{{ unpaid_count }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-warning h-100">
+            <div class="card-body">
+                <h6 class="card-title">Outstanding Amount</h6>
+                <h2 class="card-text">KES {{ outstanding_amount }}</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Stock Summary -->
+<h4 class="mb-3">Stock Summary</h4>
+<table class="table table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Product</th>
+            <th>Price (KES)</th>
+            <th>Stock Quantity</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.size }}</td>
+            <td>{{ product.price }}</td>
+            <td>
+                {% if product.stock_quantity < 10 %}
+                    <span class="text-danger fw-bold">{{ product.stock_quantity }} - Low Stock</span>
+                {% else %}
+                    {{ product.stock_quantity }}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

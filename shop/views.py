@@ -1,3 +1,5 @@
+from datetime import date
+from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Customer, Product, Sale
 from .forms import CustomerForm, ProductForm, SaleForm
@@ -104,3 +106,34 @@ def sale_delete(request, pk):
         sale.delete()
         return redirect('sale_list')
     return render(request, 'shop/sale_confirm_delete.html', {'sale': sale})
+
+def dashboard(request):
+    today = date.today()
+
+    # 1. Today's sales count
+    today_sales_count = Sale.objects.filter(date__date=today).count()
+
+    # 2. Today's total revenue
+    today_revenue = Sale.objects.filter(
+        date__date=today
+    ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+    # 3. Unpaid sales count
+    unpaid_count = Sale.objects.filter(is_paid=False).count()
+
+    # 4. Total outstanding amount
+    outstanding_amount = Sale.objects.filter(
+        is_paid=False
+    ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+    # 5. All products for stock summary
+    products = Product.objects.all()
+
+    context = {
+        'today_sales_count': today_sales_count,
+        'today_revenue': today_revenue,
+        'unpaid_count': unpaid_count,
+        'outstanding_amount': outstanding_amount,
+        'products': products,
+    }
+    return render(request, 'shop/dashboard.html', context)
