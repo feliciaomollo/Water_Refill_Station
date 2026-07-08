@@ -3,6 +3,7 @@ from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Customer, Product, Sale
 from .forms import CustomerForm, ProductForm, SaleForm
+from .sms import send_sms
 
 def test_base(request):
     return render(request, 'shop/base.html')
@@ -137,3 +138,39 @@ def dashboard(request):
         'products': products,
     }
     return render(request, 'shop/dashboard.html', context)
+
+def debt_list(request):
+    customers_in_debt = Customer.objects.filter(
+        sale__is_paid=False
+    ).annotate(
+        total_owed=Sum('sale__total_amount')
+    ).distinct()
+
+    context = {'customers_in_debt': customers_in_debt}
+    return render(request, 'shop/debt_list.html', context)
+
+def mark_paid(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    if request.method == 'POST':
+        Sale.objects.filter(
+            customer=customer,
+            is_paid=False
+        ).update(is_paid=True)
+        return redirect('debt_list')
+    return render(request, 'shop/mark_paid_confirm.html', {'customer': customer})
+
+def send_sms_view(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    if request.method == 'POST':
+        message = request.POST.get('message')
+        phone = customer.phone_number
+        result = send_sms(phone, message)
+        if result['success']:
+            return redirect('debt_list')
+        else:
+            error = result['error']
+            return render(request, 'shop/send_sms.html', {
+                'customer': customer,
+                'error': error
+            })
+    return render(request, 'shop/send_sms.html', {'customer': customer})

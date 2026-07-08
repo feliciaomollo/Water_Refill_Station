@@ -1,0 +1,39 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Debt Tracking | Water Shop{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Customers in Debt</h2>
+
+{% if customers_in_debt %}
+<table class="table table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Total Owed (KES)</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for customer in customers_in_debt %}
+        <tr>
+            <td>{{ customer.name }}</td>
+            <td>{{ customer.phone_number }}</td>
+            <td class="text-danger fw-bold">{{ customer.total_owed }}</td>
+            <td>
+    <form method="post" action="{% url 'mark_paid' customer.pk %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-success">Mark Paid</button>
+    </form>
+    <a href="{% url 'send_sms' customer.pk %}" class="btn btn-sm btn-primary">Send SMS</a>
+</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-success">No customers currently in debt.</p>
+{% endif %}
+
+{% endblock %}

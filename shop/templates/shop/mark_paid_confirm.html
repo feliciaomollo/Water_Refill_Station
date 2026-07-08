@@ -1,0 +1,16 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Mark Paid | Water Shop{% endblock %}
+
+{% block content %}
+<h2>Mark All Sales as Paid</h2>
+
+<p>Are you sure you want to mark all unpaid sales for <strong>{{ customer.name }}</strong> as paid?</p>
+<p class="text-muted">This will clear their entire outstanding balance.</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success">Yes, mark as paid</button>
+    <a href="{% url 'debt_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
