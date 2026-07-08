@@ -1,0 +1,26 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Send SMS | Water Shop{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Send SMS to {{ customer.name }}</h2>
+
+<p class="text-muted">Sending to: {{ customer.phone_number }}</p>
+
+{% if error %}
+<div class="alert alert-danger">
+    Failed to send SMS: {{ error }}
+</div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">Message</label>
+        <textarea name="message" class="form-control" rows="4" 
+        placeholder="e.g. Dear customer, you have an outstanding balance of KES X. Please visit the shop to clear it."></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send SMS</button>
+    <a href="{% url 'debt_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
