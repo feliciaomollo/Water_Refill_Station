@@ -36,3 +36,16 @@ class Sale(models.Model): #The ORM automatically handles the plural (sales) for 
 
     def __str__(self):
         return f"{self.customer} - {self.product} on {self.date}"
+    
+class TankLevel(models.Model):
+    SOURCE_CHOICES = [
+        ('manual', 'Manual Entry'),
+        ('api', 'API/Sensor'),
+    ]
+
+    level_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    source = models.CharField(max_length=10, choices=SOURCE_CHOICES, default='manual')
+
+    def __str__(self):
+        return f"{self.level_percentage}% at {self.recorded_at}"

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import TankLevelAPIView
 
 urlpatterns = [
     path('test/', views.test_base, name='test_base'),
@@ -19,4 +20,6 @@ urlpatterns = [
     path('debts/', views.debt_list, name='debt_list'),
     path('debts/<int:pk>/mark-paid/', views.mark_paid, name='mark_paid'),
     path('debts/<int:pk>/send-sms/', views.send_sms_view, name='send_sms'),
+    path('tank-level/entry/', views.tank_level_entry, name='tank_level_entry'),
+    path('api/tank-level/', TankLevelAPIView.as_view(), name='tank_level_api'), # TankLevelAPIView is a class-based view, not a function-based view, so it can't be referenced as views.TankLevelAPIView the same way your other views are — you need to import it explicitly by name.
 ]

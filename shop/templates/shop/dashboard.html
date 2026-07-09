@@ -3,6 +3,7 @@
 {% block title %}Dashboard | Water Shop{% endblock %}
 
 {% block content %}
+
 <h2 class="mb-4">Dashboard</h2>
 
 <!-- Stat Cards Row -->
@@ -45,6 +46,29 @@
     </div>
 
 </div>
+
+<h4 class="mb-3 mt-4">Tank Level</h4>
+
+{% if latest_tank %}
+    {% if latest_tank.level_percentage >= 50 %}
+        <div class="alert alert-success">
+    {% elif latest_tank.level_percentage >= 20 %}
+        <div class="alert alert-warning">
+    {% else %}
+        <div class="alert alert-danger">
+    {% endif %}
+        <strong>Current Tank Level: {{ latest_tank.level_percentage }}%</strong>
+        — Last updated: {{ latest_tank.recorded_at|date:"d M Y H:i" }}
+        ({{ latest_tank.source }})
+        <a href="{% url 'tank_level_entry' %}" class="btn btn-sm btn-dark ms-3">Log New Reading</a>
+    </div>
+{% else %}
+    <div class="alert alert-secondary">
+        No tank level recorded yet.
+        <a href="{% url 'tank_level_entry' %}" class="btn btn-sm btn-dark ms-3">Log Reading</a>
+    </div>
+{% endif %}
+
 
 <!-- Stock Summary -->
 <h4 class="mb-3">Stock Summary</h4>
