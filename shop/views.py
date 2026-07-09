@@ -1,9 +1,15 @@
 from datetime import date
 from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 from .models import Customer, Product, Sale
-from .forms import CustomerForm, ProductForm, SaleForm
+from .forms import CustomerForm, ProductForm, SaleForm, TankLevelForm
 from .sms import send_sms
+from .serializers import TankLevelSerializer
+from .models import TankLevel
+
 
 def test_base(request):
     return render(request, 'shop/base.html')
@@ -110,25 +116,18 @@ def sale_delete(request, pk):
 
 def dashboard(request):
     today = date.today()
-
-    # 1. Today's sales count
     today_sales_count = Sale.objects.filter(date__date=today).count()
-
-    # 2. Today's total revenue
     today_revenue = Sale.objects.filter(
         date__date=today
     ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-
-    # 3. Unpaid sales count
     unpaid_count = Sale.objects.filter(is_paid=False).count()
-
-    # 4. Total outstanding amount
     outstanding_amount = Sale.objects.filter(
         is_paid=False
     ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-
-    # 5. All products for stock summary
     products = Product.objects.all()
+
+    # Latest tank level
+    latest_tank = TankLevel.objects.order_by('-recorded_at').first()
 
     context = {
         'today_sales_count': today_sales_count,
@@ -136,6 +135,7 @@ def dashboard(request):
         'unpaid_count': unpaid_count,
         'outstanding_amount': outstanding_amount,
         'products': products,
+        'latest_tank': latest_tank,
     }
     return render(request, 'shop/dashboard.html', context)
 
@@ -174,3 +174,40 @@ def send_sms_view(request, pk):
                 'error': error
             })
     return render(request, 'shop/send_sms.html', {'customer': customer})
+
+class TankLevelAPIView(APIView):
+    def post(self, request):
+        serializer = TankLevelSerializer(data=request.data)
+        if serializer.is_valid():
+            tank_level = serializer.save(source='api')
+            
+            # Send SMS alert if level is below 20%
+            if tank_level.level_percentage < 20:
+                owner_phone = config('OWNER_PHONE')
+                send_sms(
+                    owner_phone,
+                    f"WARNING: Water tank level is critically low at {tank_level.level_percentage}%. Please arrange a refill immediately."
+                )
+            
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+def tank_level_entry(request):
+    if request.method == 'POST':
+        form = TankLevelForm(request.POST)
+        if form.is_valid():
+            tank = form.save(commit=False)
+            tank.source = 'manual'
+            tank.save()
+
+            # Send SMS alert if level is below 20%
+            if tank.level_percentage < 20:
+                owner_phone = config('OWNER_PHONE')
+                send_sms(
+                    owner_phone,
+                    f"WARNING: Water tank level is low at {tank.level_percentage}%. Please arrange a refill."
+                )
+            return redirect('dashboard')
+    else:
+        form = TankLevelForm()
+    return render(request, 'shop/tank_level_form.html', {'form': form})

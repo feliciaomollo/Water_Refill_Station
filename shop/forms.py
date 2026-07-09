@@ -1,5 +1,5 @@
 from django import forms
-from .models import Customer, Product, Sale
+from .models import Customer, Product, Sale, TankLevel
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -15,3 +15,8 @@ class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale      
         fields = ['customer', 'product', 'quantity']
+
+class TankLevelForm(forms.ModelForm):
+    class Meta:
+        model = TankLevel
+        fields = ['level_percentage']
