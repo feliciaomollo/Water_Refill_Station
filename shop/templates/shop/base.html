@@ -15,7 +15,7 @@
             <nav class="col-md-2 d-none d-md-block bg-dark sidebar min-vh-100 p-0">
                 <div class="position-sticky pt-3">
                     <h5 class="text-white text-center mb-4">Water Shop</h5>
-                    <ul class="nav flex-column">
+                   <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link text-white" href="{% url 'dashboard' %}">Dashboard</a>
                         </li>
@@ -27,9 +27,16 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-white" href="{% url 'sale_list' %}">Sales</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" href="{% url 'debt_list' %}">Debt Tracking</a>
                         </li>
-                        
+                       <li class="nav-item mt-3">
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link nav-link text-white">Logout</button>
+                            </form>
+                        </li>
                     </ul>
                 </div>
             </nav>
