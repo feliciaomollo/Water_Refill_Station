@@ -1,23 +1,26 @@
 from datetime import date
+from decouple import config
+from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Customer, Product, Sale
+from .models import Customer, Product, Sale, TankLevel
 from .forms import CustomerForm, ProductForm, SaleForm, TankLevelForm
 from .sms import send_sms
 from .serializers import TankLevelSerializer
-from .models import TankLevel
 
 
 def test_base(request):
     return render(request, 'shop/base.html')
 
+@login_required #if the user isn't logged in, Django automatically redirects them to the login page. If they are logged in, the view runs normally.
 def customer_list(request):
     customers = Customer.objects.all()     
     return render(request, 'shop/customer_list.html', {'customers': customers})
 
+@login_required
 def customer_create(request):
     if request.method == 'POST':
         form = CustomerForm(request.POST)
@@ -28,6 +31,7 @@ def customer_create(request):
         form = CustomerForm()
     return render(request, 'shop/customer_form.html', {'form': form})
 
+@login_required
 def customer_update(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     if request.method == 'POST':
@@ -39,6 +43,7 @@ def customer_update(request, pk):
         form = CustomerForm(instance=customer)
     return render(request, 'shop/customer_form.html', {'form': form})
 
+@login_required
 def customer_delete(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     if request.method == 'POST':
@@ -46,10 +51,12 @@ def customer_delete(request, pk):
         return redirect('customer_list')
     return render(request, 'shop/customer_confirm_delete.html', {'customer': customer})
 
+@login_required
 def product_list(request):
     products = Product.objects.all()     
     return render(request, 'shop/product_list.html', {'products': products})
 
+@login_required
 def product_create(request):
     if request.method == 'POST':
         form = ProductForm(request.POST)
@@ -60,6 +67,7 @@ def product_create(request):
         form = ProductForm()
     return render(request, 'shop/product_form.html', {'form': form})
 
+@login_required
 def product_update(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
@@ -71,6 +79,7 @@ def product_update(request, pk):
         form = ProductForm(instance=product)
     return render(request, 'shop/product_form.html', {'form': form})
 
+@login_required
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
@@ -78,6 +87,7 @@ def product_delete(request, pk):
         return redirect('product_list')
     return render(request, 'shop/product_confirm_delete.html', {'product': product})
 
+@login_required
 def sale_create(request):
     if request.method == 'POST':
         form = SaleForm(request.POST)
@@ -90,10 +100,12 @@ def sale_create(request):
         form = SaleForm()
     return render(request, 'shop/sale_form.html', {'form': form})
 
+@login_required
 def sale_list(request):
     sales = Sale.objects.all()
     return render(request, 'shop/sale_list.html', {'sales': sales})
 
+@login_required
 def sale_update(request, pk):
     sale = get_object_or_404(Sale, pk=pk)
     if request.method == 'POST':
@@ -107,6 +119,7 @@ def sale_update(request, pk):
         form = SaleForm(instance=sale)
     return render(request, 'shop/sale_form.html', {'form': form})
 
+@login_required
 def sale_delete(request, pk):
     sale = get_object_or_404(Sale, pk=pk)
     if request.method == 'POST':
@@ -114,6 +127,7 @@ def sale_delete(request, pk):
         return redirect('sale_list')
     return render(request, 'shop/sale_confirm_delete.html', {'sale': sale})
 
+@login_required
 def dashboard(request):
     today = date.today()
     today_sales_count = Sale.objects.filter(date__date=today).count()
@@ -139,6 +153,7 @@ def dashboard(request):
     }
     return render(request, 'shop/dashboard.html', context)
 
+@login_required
 def debt_list(request):
     customers_in_debt = Customer.objects.filter(
         sale__is_paid=False
@@ -149,6 +164,7 @@ def debt_list(request):
     context = {'customers_in_debt': customers_in_debt}
     return render(request, 'shop/debt_list.html', context)
 
+@login_required
 def mark_paid(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     if request.method == 'POST':
@@ -159,6 +175,7 @@ def mark_paid(request, pk):
         return redirect('debt_list')
     return render(request, 'shop/mark_paid_confirm.html', {'customer': customer})
 
+@login_required
 def send_sms_view(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     if request.method == 'POST':
@@ -175,6 +192,7 @@ def send_sms_view(request, pk):
             })
     return render(request, 'shop/send_sms.html', {'customer': customer})
 
+#only works on function-based views 
 class TankLevelAPIView(APIView):
     def post(self, request):
         serializer = TankLevelSerializer(data=request.data)
@@ -191,7 +209,8 @@ class TankLevelAPIView(APIView):
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+@login_required    
 def tank_level_entry(request):
     if request.method == 'POST':
         form = TankLevelForm(request.POST)

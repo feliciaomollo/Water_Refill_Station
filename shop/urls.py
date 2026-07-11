@@ -1,6 +1,8 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
 from . import views
 from .views import TankLevelAPIView
+
 
 urlpatterns = [
     path('test/', views.test_base, name='test_base'),
@@ -22,4 +24,6 @@ urlpatterns = [
     path('debts/<int:pk>/send-sms/', views.send_sms_view, name='send_sms'),
     path('tank-level/entry/', views.tank_level_entry, name='tank_level_entry'),
     path('api/tank-level/', TankLevelAPIView.as_view(), name='tank_level_api'), # TankLevelAPIView is a class-based view, not a function-based view, so it can't be referenced as views.TankLevelAPIView the same way your other views are — you need to import it explicitly by name.
+    path('login/', auth_views.LoginView.as_view(template_name='shop/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]
