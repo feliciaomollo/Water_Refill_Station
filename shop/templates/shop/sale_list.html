@@ -1,10 +1,16 @@
 {% extends 'shop/base.html' %}
+{% block title %}Sales | Water Shop{% endblock %}
 
 {% block content %}
-<h2>Sales</h2>
+<div class="page-header">
+    <div>
+        <h2>Sales</h2>
+        <p>All recorded transactions</p>
+    </div>
+    <a href="{% url 'sale_create' %}" class="btn btn-primary btn-sm">+ Record Sale</a>
+</div>
 
-<a href="{% url 'sale_create' %}" class="btn btn-primary mb-3">Record Sale</a>
-
+<div class="table-responsive">
 <table class="table">
     <thead>
         <tr>
@@ -20,18 +26,28 @@
     <tbody>
         {% for sale in sales %}
         <tr>
-            <td>{{ sale.customer }}</td>
+            <td>
+                <span class="avatar">{{ sale.customer.name|slice:":2"|upper }}</span>
+                {{ sale.customer }}
+            </td>
             <td>{{ sale.product }}</td>
             <td>{{ sale.quantity }}</td>
             <td>{{ sale.total_amount }}</td>
-            <td>{% if sale.is_paid %}Yes{% else %}No{% endif %}</td>
+            <td>
+                {% if sale.is_paid %}
+                    <span class="badge-paid">Yes</span>
+                {% else %}
+                    <span class="badge-unpaid">No</span>
+                {% endif %}
+            </td>
             <td>{{ sale.date|date:"d M Y" }}</td>
             <td>
-                <a href="{% url 'sale_update' sale.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                <a href="{% url 'sale_delete' sale.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                <a href="{% url 'sale_update' sale.pk %}" class="btn-teal-outline">Edit</a>
+                <a href="{% url 'sale_delete' sale.pk %}" class="btn-danger-outline ms-1">Delete</a>
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+</div>
 {% endblock %}

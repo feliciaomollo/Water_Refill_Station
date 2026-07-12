@@ -1,34 +1,49 @@
 {% extends 'shop/base.html' %}
+{% block title %}Customers | Water Shop{% endblock %}
 
 {% block content %}
-<h2>Customers</h2>
+<div class="page-header">
+    <div>
+        <h2>Customers</h2>
+        <p>{{ customers|length }} customer{{ customers|length|pluralize }} registered</p>
+    </div>
+    <a href="{% url 'customer_create' %}" class="btn btn-primary btn-sm">+ Add Customer</a>
+</div>
 
-<a href="{% url 'customer_create' %}" class="btn btn-primary mb-3">Add Customer</a>
-
-
+<div class="table-responsive">
 <table class="table">
     <thead>
-    <tr>
-        <th>Name</th>
-        <th>Phone</th>
-        <th>Location</th>
-        <th>Credit Customer</th>
-        <th>Actions</th> 
-    </tr>
-</thead>
- <tbody>
-    {% for customer in customers %}
-    <tr>
-        <td>{{ customer.name }}</td>
-        <td>{{ customer.phone_number }}</td>
-        <td>{{ customer.location }}</td>
-        <td>{{ customer.is_credit_customer }}</td>
-        <td>
-            <a href="{% url 'customer_update' customer.pk %}" class="btn btn-sm btn-warning">Edit</a>
-
-            <a href="{% url 'customer_delete' customer.pk %}" class="btn btn-sm btn-danger">Delete</a>
-        </td>  
-    </tr>
-    {% endfor %}
-</tbody>
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Location</th>
+            <th>Credit</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for customer in customers %}
+        <tr>
+            <td>
+                <span class="avatar">{{ customer.name|slice:":2"|upper }}</span>
+                {{ customer.name }}
+            </td>
+            <td>{{ customer.phone_number }}</td>
+            <td>{{ customer.location }}</td>
+            <td>
+                {% if customer.is_credit_customer %}
+                    <span class="badge-credit">Yes</span>
+                {% else %}
+                    <span class="badge-no-credit">No</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'customer_update' customer.pk %}" class="btn-teal-outline">Edit</a>
+                <a href="{% url 'customer_delete' customer.pk %}" class="btn-danger-outline ms-1">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
 {% endblock %}
