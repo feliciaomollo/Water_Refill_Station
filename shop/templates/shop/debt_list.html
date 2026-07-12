@@ -1,39 +1,41 @@
 {% extends 'shop/base.html' %}
-
 {% block title %}Debt Tracking | Water Shop{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Customers in Debt</h2>
+<div class="page-header">
+    <div>
+        <h2>Debt Tracking</h2>
+        <p style="color: var(--coral);">{{ customers_in_debt|length }} customer{{ customers_in_debt|length|pluralize }} with outstanding balances</p>
+    </div>
+</div>
 
 {% if customers_in_debt %}
-<table class="table table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>Customer</th>
-            <th>Phone</th>
-            <th>Total Owed (KES)</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for customer in customers_in_debt %}
-        <tr>
-            <td>{{ customer.name }}</td>
-            <td>{{ customer.phone_number }}</td>
-            <td class="text-danger fw-bold">{{ customer.total_owed }}</td>
-            <td>
-    <form method="post" action="{% url 'mark_paid' customer.pk %}" style="display:inline;">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-sm btn-success">Mark Paid</button>
-    </form>
-    <a href="{% url 'send_sms' customer.pk %}" class="btn btn-sm btn-primary">Send SMS</a>
-</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    {% for customer in customers_in_debt %}
+    <div class="debt-card">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="debt-avatar">{{ customer.name|slice:":2"|upper }}</div>
+            <div>
+                <p style="font-size: 0.875rem; font-weight: 500; color: var(--teal-dark); margin: 0 0 2px;">{{ customer.name }}</p>
+                <p style="font-size: 0.75rem; color: var(--teal-light); margin: 0;">{{ customer.phone_number }} · {{ customer.location }}</p>
+            </div>
+        </div>
+        <div style="text-align: center; padding: 0 1.5rem;">
+            <p style="font-size: 0.7rem; color: var(--teal-light); text-transform: uppercase; letter-spacing: 0.6px; margin: 0 0 2px;">Amount Owed</p>
+            <p style="font-size: 1.1rem; font-weight: 600; color: var(--danger); margin: 0;">KES {{ customer.total_owed }}</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <form method="post" action="{% url 'mark_paid' customer.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-success-outline">Mark Paid</button>
+            </form>
+            <a href="{% url 'send_sms' customer.pk %}" class="btn-coral">Send SMS</a>
+        </div>
+    </div>
+    {% endfor %}
 {% else %}
-<p class="text-success">No customers currently in debt.</p>
+<div style="background: var(--white); border-radius: var(--radius); padding: 2rem; text-align: center; box-shadow: var(--shadow); border: 1.5px dashed var(--teal-light);">
+    <p style="font-size: 2rem; margin: 0 0 8px;">✅</p>
+    <p style="color: var(--teal-light); font-size: 0.875rem; margin: 0;">No outstanding balances — all customers are cleared.</p>
+</div>
 {% endif %}
-
 {% endblock %}

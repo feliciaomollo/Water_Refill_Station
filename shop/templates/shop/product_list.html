@@ -1,10 +1,16 @@
 {% extends 'shop/base.html' %}
+{% block title %}Products | Water Shop{% endblock %}
 
 {% block content %}
-<h2>Products</h2>
+<div class="page-header">
+    <div>
+        <h2>Products</h2>
+        <p>Water container sizes and pricing</p>
+    </div>
+    <a href="{% url 'product_create' %}" class="btn btn-primary btn-sm">+ Add Product</a>
+</div>
 
-<a href="{% url 'product_create' %}" class="btn btn-primary mb-3">Add Product</a>
-
+<div class="table-responsive">
 <table class="table">
     <thead>
         <tr>
@@ -19,13 +25,22 @@
         <tr>
             <td>{{ product.size }}</td>
             <td>{{ product.price }}</td>
-            <td>{{ product.stock_quantity }}</td>
             <td>
-                <a href="{% url 'product_update' product.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                <a href="{% url 'product_delete' product.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                {% if product.stock_quantity < 10 %}
+                    <span class="badge-never">{{ product.stock_quantity }} — Critical</span>
+                {% elif product.stock_quantity < 20 %}
+                    <span class="badge-inactive">{{ product.stock_quantity }} — Low</span>
+                {% else %}
+                    <span class="badge-frequent">{{ product.stock_quantity }} — Good</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'product_update' product.pk %}" class="btn-teal-outline">Edit</a>
+                <a href="{% url 'product_delete' product.pk %}" class="btn-danger-outline ms-1">Delete</a>
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+</div>
 {% endblock %}

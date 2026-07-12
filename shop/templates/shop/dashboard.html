@@ -1,79 +1,72 @@
 {% extends 'shop/base.html' %}
-
 {% block title %}Dashboard | Water Shop{% endblock %}
 
 {% block content %}
-
-<h2 class="mb-4">Dashboard</h2>
-
-<!-- Stat Cards Row -->
-<div class="row g-3 mb-4">
-
-    <div class="col-md-3">
-        <div class="card text-white bg-primary h-100">
-            <div class="card-body">
-                <h6 class="card-title">Today's Sales</h6>
-                <h2 class="card-text">{{ today_sales_count }}</h2>
-            </div>
-        </div>
+<div class="page-header">
+    <div>
+        <h2>Dashboard</h2>
+        <p>Welcome back — here's what's happening today</p>
     </div>
-
-    <div class="col-md-3">
-        <div class="card text-white bg-success h-100">
-            <div class="card-body">
-                <h6 class="card-title">Today's Revenue</h6>
-                <h2 class="card-text">KES {{ today_revenue }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card text-white bg-danger h-100">
-            <div class="card-body">
-                <h6 class="card-title">Unpaid Sales</h6>
-                <h2 class="card-text">{{ unpaid_count }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card text-white bg-warning h-100">
-            <div class="card-body">
-                <h6 class="card-title">Outstanding Amount</h6>
-                <h2 class="card-text">KES {{ outstanding_amount }}</h2>
-            </div>
-        </div>
-    </div>
-
 </div>
 
-<h4 class="mb-3 mt-4">Tank Level</h4>
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card border-teal">
+            <h6>Today's Sales</h6>
+            <h2>{{ today_sales_count }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card border-success">
+            <h6>Today's Revenue</h6>
+            <h2>KES {{ today_revenue }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card border-coral">
+            <h6>Unpaid Sales</h6>
+            <h2>{{ unpaid_count }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card border-danger">
+            <h6>Outstanding Amount</h6>
+            <h2>KES {{ outstanding_amount }}</h2>
+        </div>
+    </div>
+</div>
 
+<!-- Tank Level -->
 {% if latest_tank %}
-    {% if latest_tank.level_percentage >= 50 %}
-        <div class="alert alert-success">
-    {% elif latest_tank.level_percentage >= 20 %}
-        <div class="alert alert-warning">
-    {% else %}
-        <div class="alert alert-danger">
-    {% endif %}
-        <strong>Current Tank Level: {{ latest_tank.level_percentage }}%</strong>
-        — Last updated: {{ latest_tank.recorded_at|date:"d M Y H:i" }}
-        ({{ latest_tank.source }})
-        <a href="{% url 'tank_level_entry' %}" class="btn btn-sm btn-dark ms-3">Log New Reading</a>
+<div class="tank-widget mb-4">
+    <div>
+        <p style="font-size: 0.7rem; color: var(--teal-light); text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 2px;">Tank Level</p>
+        <p style="font-size: 1rem; font-weight: 600; color: var(--teal-dark); margin: 0;">
+            {{ latest_tank.level_percentage }}%
+            — Last updated: {{ latest_tank.recorded_at|date:"d M Y H:i" }}
+            ({{ latest_tank.source }})
+        </p>
     </div>
+    <div class="tank-progress">
+        <div class="tank-progress-bar {% if latest_tank.level_percentage < 20 %}low{% elif latest_tank.level_percentage < 50 %}medium{% else %}good{% endif %}"
+             style="width: {{ latest_tank.level_percentage }}%">
+        </div>
+    </div>
+    <a href="{% url 'tank_level_entry' %}" class="btn btn-primary btn-sm">Log Reading</a>
+</div>
 {% else %}
-    <div class="alert alert-secondary">
-        No tank level recorded yet.
-        <a href="{% url 'tank_level_entry' %}" class="btn btn-sm btn-dark ms-3">Log Reading</a>
-    </div>
+<div class="tank-widget mb-4">
+    <p style="color: var(--text-muted); margin: 0;">No tank level recorded yet.</p>
+    <a href="{% url 'tank_level_entry' %}" class="btn btn-primary btn-sm ms-auto">Log Reading</a>
+</div>
 {% endif %}
 
-
 <!-- Stock Summary -->
-<h4 class="mb-3">Stock Summary</h4>
-<table class="table table-bordered">
-    <thead class="table-dark">
+<h4>Stock Summary</h4>
+<div class="table-responsive">
+<table class="table">
+    <thead>
         <tr>
             <th>Product</th>
             <th>Price (KES)</th>
@@ -87,14 +80,16 @@
             <td>{{ product.price }}</td>
             <td>
                 {% if product.stock_quantity < 10 %}
-                    <span class="text-danger fw-bold">{{ product.stock_quantity }} - Low Stock</span>
+                    <span class="badge-never">{{ product.stock_quantity }} — Critical</span>
+                {% elif product.stock_quantity < 20 %}
+                    <span class="badge-inactive">{{ product.stock_quantity }} — Low</span>
                 {% else %}
-                    {{ product.stock_quantity }}
+                    <span class="badge-frequent">{{ product.stock_quantity }} — Good</span>
                 {% endif %}
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
+</div>
 {% endblock %}

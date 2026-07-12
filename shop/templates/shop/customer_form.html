@@ -1,11 +1,12 @@
 {% extends 'shop/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 <h2>Add Customer</h2>
 
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}<!-- Automatically handles field mapping and error messages -->
+    {% crispy form %}
     <button type="submit" class="btn btn-primary">Save</button>
 </form>
 {% endblock %}
