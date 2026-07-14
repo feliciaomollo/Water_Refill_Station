@@ -1,7 +1,7 @@
 from datetime import date
 from decouple import config
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, ProtectedError
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -47,8 +47,14 @@ def customer_update(request, pk):
 def customer_delete(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     if request.method == 'POST':
-        customer.delete()
-        return redirect('customer_list')
+        try:
+            customer.delete()
+            return redirect('customer_list')
+        except ProtectedError:
+            return render(request, 'shop/customer_confirm_delete.html', {
+                'customer': customer,
+                'error': f"Cannot delete {customer.name} — they have existing sales records. Delete their sales first, or mark them as inactive instead."
+            })
     return render(request, 'shop/customer_confirm_delete.html', {'customer': customer})
 
 @login_required

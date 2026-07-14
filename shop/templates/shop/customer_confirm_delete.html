@@ -3,11 +3,19 @@
 {% block content %}
 <h2>Delete Customer</h2>
 
+{% if error %}
+<div class="alert alert-danger">
+    {{ error }}
+</div>
+<a href="{% url 'customer_list' %}" class="btn btn-secondary">Back to Customers</a>
+{% else %}
 <p>Are you sure you want to delete <strong>{{ customer.name }}</strong>?</p>
 
 <form method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Yes, delete</button>
-    <a href="{% url 'customer_list' %}" class="btn btn-secondary">Cancel</button>
+    <a href="{% url 'customer_list' %}" class="btn btn-secondary">Cancel</a>
 </form>
+{% endif %}
+
 {% endblock %}
