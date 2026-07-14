@@ -30,7 +30,7 @@ class Sale(models.Model): #The ORM automatically handles the plural (sales) for 
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.IntegerField(default=0)
-    total_amount = models.DecimalField(max_digits=6, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     is_paid = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)
 

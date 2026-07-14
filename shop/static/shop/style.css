@@ -115,7 +115,8 @@ main h4 {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 1.25rem;
-  border-top: 3px solid var(--teal);
+  border: none !important;
+  border-top: 3px solid var(--teal) !important;
   transition: var(--transition);
 }
 
