@@ -6,18 +6,18 @@ from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.contrib import messages
 from .models import Customer, Product, Sale, TankLevel
 from .forms import CustomerForm, ProductForm, SaleForm, TankLevelForm
 from .sms import send_sms
 from .serializers import TankLevelSerializer
-
 
 def test_base(request):
     return render(request, 'shop/base.html')
 
 @login_required #if the user isn't logged in, Django automatically redirects them to the login page. If they are logged in, the view runs normally.
 def customer_list(request):
-    customers = Customer.objects.all()     
+    customers = Customer.objects.all()   
     return render(request, 'shop/customer_list.html', {'customers': customers})
 
 @login_required
@@ -26,6 +26,7 @@ def customer_create(request):
         form = CustomerForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, f"Customer {form.instance.name} added successfully.")
             return redirect('customer_list')
     else:
         form = CustomerForm()
@@ -38,6 +39,7 @@ def customer_update(request, pk):
         form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
             form.save()
+            messages.success(request, f"Customer {customer.name} updated successfully.")
             return redirect('customer_list')
     else:
         form = CustomerForm(instance=customer)
@@ -49,12 +51,19 @@ def customer_delete(request, pk):
     if request.method == 'POST':
         try:
             customer.delete()
+<<<<<<< Updated upstream
             return redirect('customer_list')
         except ProtectedError:
             return render(request, 'shop/customer_confirm_delete.html', {
                 'customer': customer,
                 'error': f"Cannot delete {customer.name} — they have existing sales records. Delete their sales first, or mark them as inactive instead."
             })
+=======
+            messages.success(request, f"{customer.name} deleted successfully.")
+        except ProtectedError:
+            messages.error(request, f"Cannot delete {customer.name} — they have existing sales records. Delete their sales first.")
+        return redirect('customer_list')
+>>>>>>> Stashed changes
     return render(request, 'shop/customer_confirm_delete.html', {'customer': customer})
 
 @login_required
@@ -68,6 +77,7 @@ def product_create(request):
         form = ProductForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Product added successfully.")
             return redirect('product_list')
     else:
         form = ProductForm()
@@ -80,6 +90,7 @@ def product_update(request, pk):
         form = ProductForm(request.POST, instance=product)
         if form.is_valid():
             form.save()
+            messages.success(request, "Product updated successfully.")
             return redirect('product_list')
     else:
         form = ProductForm(instance=product)
@@ -90,6 +101,7 @@ def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
         product.delete()
+        messages.success(request, "Product deleted successfully.")
         return redirect('product_list')
     return render(request, 'shop/product_confirm_delete.html', {'product': product})
 
@@ -101,6 +113,7 @@ def sale_create(request):
             sale = form.save(commit=False)  
             sale.total_amount = sale.quantity * sale.product.price
             sale.save()
+            messages.success(request, f"Sale recorded — KES {sale.total_amount} total.")
             return redirect('sale_list')
     else:
         form = SaleForm()
@@ -120,6 +133,7 @@ def sale_update(request, pk):
             sale = form.save(commit=False)  
             sale.total_amount = sale.quantity * sale.product.price
             sale.save()
+            messages.success(request, "Sale updated successfully.")
             return redirect('sale_list')
     else:
         form = SaleForm(instance=sale)
@@ -130,6 +144,7 @@ def sale_delete(request, pk):
     sale = get_object_or_404(Sale, pk=pk)
     if request.method == 'POST':
         sale.delete()
+        messages.success(request, "Sale deleted successfully.")
         return redirect('sale_list')
     return render(request, 'shop/sale_confirm_delete.html', {'sale': sale})
 
@@ -178,6 +193,7 @@ def mark_paid(request, pk):
             customer=customer,
             is_paid=False
         ).update(is_paid=True)
+        messages.success(request, f"All sales for {customer.name} marked as paid.")
         return redirect('debt_list')
     return render(request, 'shop/mark_paid_confirm.html', {'customer': customer})
 
@@ -189,13 +205,11 @@ def send_sms_view(request, pk):
         phone = customer.phone_number
         result = send_sms(phone, message)
         if result['success']:
+            messages.success(request, f"SMS sent successfully to {customer.phone_number}.")
             return redirect('debt_list')
         else:
-            error = result['error']
-            return render(request, 'shop/send_sms.html', {
-                'customer': customer,
-                'error': error
-            })
+            messages.error(request, f"Failed to send SMS: {result['error']}")
+            return render(request, 'shop/send_sms.html', {'customer': customer})
     return render(request, 'shop/send_sms.html', {'customer': customer})
 
 #only works on function-based views 

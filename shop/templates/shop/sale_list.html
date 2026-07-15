@@ -10,6 +10,7 @@
     <a href="{% url 'sale_create' %}" class="btn btn-primary btn-sm">+ Record Sale</a>
 </div>
 
+{% if sales %}
 <div class="table-responsive">
 <table class="table">
     <thead>
@@ -50,4 +51,14 @@
     </tbody>
 </table>
 </div>
+
+{% else %}
+<div style="background: var(--white); border-radius: var(--radius); padding: 3rem; text-align: center; box-shadow: var(--shadow); border: 1.5px dashed var(--teal-light);">
+    <p style="font-size: 2rem; margin: 0 0 8px;">🧾</p>
+    <p style="font-weight: 600; color: var(--teal-dark); margin: 0 0 4px;">No sales recorded yet</p>
+    <p style="color: var(--text-muted); font-size: 0.875rem; margin: 0 0 1rem;">Record your first sale to start tracking revenue.</p>
+    <a href="{% url 'sale_create' %}" class="btn btn-primary btn-sm">+ Record Sale</a>
+</div>
+{% endif %}
+
 {% endblock %}
