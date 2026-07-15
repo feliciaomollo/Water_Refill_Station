@@ -10,40 +10,50 @@
     <a href="{% url 'customer_create' %}" class="btn btn-primary btn-sm">+ Add Customer</a>
 </div>
 
+{% if customers %}
 <div class="table-responsive">
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Location</th>
-            <th>Credit</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for customer in customers %}
-        <tr>
-            <td>
-                <span class="avatar">{{ customer.name|slice:":2"|upper }}</span>
-                {{ customer.name }}
-            </td>
-            <td>{{ customer.phone_number }}</td>
-            <td>{{ customer.location }}</td>
-            <td>
-                {% if customer.is_credit_customer %}
-                    <span class="badge-credit">Yes</span>
-                {% else %}
-                    <span class="badge-no-credit">No</span>
-                {% endif %}
-            </td>
-            <td>
-                <a href="{% url 'customer_update' customer.pk %}" class="btn-teal-outline">Edit</a>
-                <a href="{% url 'customer_delete' customer.pk %}" class="btn-danger-outline ms-1">Delete</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Location</th>
+                <th>Credit</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>
+                    <span class="avatar">{{ customer.name|slice:":2"|upper }}</span>
+                    {{ customer.name }}
+                </td>
+                <td>{{ customer.phone_number }}</td>
+                <td>{{ customer.location }}</td>
+                <td>
+                    {% if customer.is_credit_customer %}
+                        <span class="badge-credit">Yes</span>
+                    {% else %}
+                        <span class="badge-no-credit">No</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'customer_update' customer.pk %}" class="btn-teal-outline">Edit</a>
+                    <a href="{% url 'customer_delete' customer.pk %}" class="btn-danger-outline ms-1">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
+{% else %}
+<div style="background: var(--white); border-radius: var(--radius); padding: 3rem; text-align: center; box-shadow: var(--shadow); border: 1.5px dashed var(--teal-light);">
+    <p style="font-size: 2rem; margin: 0 0 8px;">👥</p>
+    <p style="font-weight: 600; color: var(--teal-dark); margin: 0 0 4px;">No customers yet</p>
+    <p style="color: var(--text-muted); font-size: 0.875rem; margin: 0 0 1rem;">Add your first customer to get started.</p>
+    <a href="{% url 'customer_create' %}" class="btn btn-primary btn-sm">+ Add Customer</a>
+</div>
+{% endif %}
+
 {% endblock %}

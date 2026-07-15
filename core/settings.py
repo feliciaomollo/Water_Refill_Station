@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+from django.contrib.messages import constants as messages_constants
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -137,3 +138,11 @@ LOGOUT_REDIRECT_URL = '/login/' #where Django sends users after logging out
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'shop/static')]
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
+MESSAGE_TAGS = {
+    messages_constants.DEBUG:   'secondary',
+    messages_constants.INFO:    'info',
+    messages_constants.SUCCESS: 'success',
+    messages_constants.WARNING: 'warning',
+    messages_constants.ERROR:   'danger',
+}
