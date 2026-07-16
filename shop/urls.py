@@ -26,4 +26,6 @@ urlpatterns = [
     path('api/tank-level/', TankLevelAPIView.as_view(), name='tank_level_api'), # TankLevelAPIView is a class-based view, not a function-based view, so it can't be referenced as views.TankLevelAPIView the same way your other views are — you need to import it explicitly by name.
     path('login/', auth_views.LoginView.as_view(template_name='shop/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('sales/<int:pk>/cancel/', views.sale_cancel, name='sale_cancel'),
+    path('sales/<int:pk>/restore/', views.sale_restore, name='sale_restore'),
 ]

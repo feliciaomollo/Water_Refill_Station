@@ -1,0 +1,16 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Cancel Sale | Water Shop{% endblock %}
+
+{% block content %}
+<h2>Cancel Sale</h2>
+
+<p>Are you sure you want to cancel the sale for <strong>{{ sale.customer }}</strong> — <strong>{{ sale.product }}</strong> on {{ sale.date|date:"d M Y" }}?</p>
+<p style="color: var(--text-muted); font-size: 0.875rem;">This sale will be marked as cancelled and excluded from revenue and debt calculations. You can restore it at any time.</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-warning">Yes, cancel sale</button>
+    <a href="{% url 'sale_list' %}" class="btn btn-secondary ms-2">Go back</a>
+</form>
+{% endblock %}
