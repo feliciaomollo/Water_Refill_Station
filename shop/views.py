@@ -1,7 +1,7 @@
 from datetime import date
 from decouple import config
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, ProtectedError
+from django.db.models import Sum, ProtectedError, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -51,19 +51,10 @@ def customer_delete(request, pk):
     if request.method == 'POST':
         try:
             customer.delete()
-<<<<<<< Updated upstream
-            return redirect('customer_list')
-        except ProtectedError:
-            return render(request, 'shop/customer_confirm_delete.html', {
-                'customer': customer,
-                'error': f"Cannot delete {customer.name} — they have existing sales records. Delete their sales first, or mark them as inactive instead."
-            })
-=======
             messages.success(request, f"{customer.name} deleted successfully.")
         except ProtectedError:
             messages.error(request, f"Cannot delete {customer.name} — they have existing sales records. Delete their sales first.")
         return redirect('customer_list')
->>>>>>> Stashed changes
     return render(request, 'shop/customer_confirm_delete.html', {'customer': customer})
 
 @login_required
@@ -149,20 +140,48 @@ def sale_delete(request, pk):
     return render(request, 'shop/sale_confirm_delete.html', {'sale': sale})
 
 @login_required
+def sale_cancel(request, pk):
+    sale = get_object_or_404(Sale, pk=pk)
+    if request.method == 'POST':
+        sale.is_cancelled = True
+        sale.save()
+        messages.success(request, f"Sale for {sale.customer.name} has been cancelled.")
+        return redirect('sale_list')
+    return render(request, 'shop/sale_cancel_confirm.html', {'sale': sale})
+
+@login_required
+def sale_restore(request, pk):
+    sale = get_object_or_404(Sale, pk=pk)
+    if request.method == 'POST':
+        sale.is_cancelled = False
+        sale.save()
+        messages.success(request, f"Sale for {sale.customer.name} has been restored.")
+        return redirect('sale_list')
+    return redirect('sale_list')
+
+@login_required
 def dashboard(request):
     today = date.today()
-    today_sales_count = Sale.objects.filter(date__date=today).count()
+    today_sales_count = Sale.objects.filter(
+        date__date=today, is_cancelled=False
+    ).count()
+
     today_revenue = Sale.objects.filter(
-        date__date=today
+        date__date=today, is_cancelled=False
     ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    unpaid_count = Sale.objects.filter(is_paid=False).count()
+
+    unpaid_count = Sale.objects.filter(
+        is_paid=False, is_cancelled=False
+    ).count()
+
     outstanding_amount = Sale.objects.filter(
-        is_paid=False
+        is_paid=False, is_cancelled=False
     ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    products = Product.objects.all()
 
     # Latest tank level
     latest_tank = TankLevel.objects.order_by('-recorded_at').first()
+
+    products = Product.objects.all()
 
     context = {
         'today_sales_count': today_sales_count,
@@ -177,9 +196,11 @@ def dashboard(request):
 @login_required
 def debt_list(request):
     customers_in_debt = Customer.objects.filter(
-        sale__is_paid=False
+    sale__is_paid=False,
+    sale__is_cancelled=False
     ).annotate(
-        total_owed=Sum('sale__total_amount')
+        total_owed=Sum('sale__total_amount',
+        filter=Q(sale__is_paid=False, sale__is_cancelled=False))
     ).distinct()
 
     context = {'customers_in_debt': customers_in_debt}

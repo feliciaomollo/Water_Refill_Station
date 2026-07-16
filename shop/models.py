@@ -33,6 +33,7 @@ class Sale(models.Model): #The ORM automatically handles the plural (sales) for 
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     is_paid = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)
+    is_cancelled = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.customer} - {self.product} on {self.date}"
