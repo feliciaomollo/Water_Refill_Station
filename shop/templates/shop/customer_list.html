@@ -19,6 +19,8 @@
                 <th>Phone</th>
                 <th>Location</th>
                 <th>Credit</th>
+                <th>Activity</th>
+                <th>Discount</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -38,6 +40,24 @@
                         <span class="badge-no-credit">No</span>
                     {% endif %}
                 </td>
+                    <td>
+                        {% if customer.activity_status == 'frequent' %}
+                            <span class="badge-frequent">Frequent</span>
+                        {% elif customer.activity_status == 'active' %}
+                            <span class="badge-active">Active</span>
+                        {% elif customer.activity_status == 'inactive' %}
+                            <span class="badge-inactive">Inactive</span>
+                        {% else %}
+                            <span class="badge-never">Never Returned</span>
+                        {% endif %}
+                    </td>
+                <td>
+    {% if customer.discount_percentage > 0 %}
+        <span class="badge-frequent">{{ customer.discount_percentage }}% off</span>
+    {% else %}
+        <span style="color: var(--text-muted);">—</span>
+    {% endif %}
+</td>
                 <td>
                     <a href="{% url 'customer_update' customer.pk %}" class="btn-teal-outline">Edit</a>
                     <a href="{% url 'customer_delete' customer.pk %}" class="btn-danger-outline ms-1">Delete</a>

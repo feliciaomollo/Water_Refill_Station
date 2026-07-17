@@ -1,12 +1,12 @@
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Button, Row, Column, Field
+from crispy_forms.layout import Layout, Submit, Row, Column, Field
 from .models import Customer, Product, Sale, TankLevel
 
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ['name', 'location', 'phone_number', 'is_credit_customer']
+        fields = ['name', 'location', 'phone_number', 'is_credit_customer', 'discount_percentage']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -17,7 +17,10 @@ class CustomerForm(forms.ModelForm):
                 Column('phone_number', css_class='col-md-6'),
             ),
             Field('location'),
-            Field('is_credit_customer'),
+            Row(
+                Column('is_credit_customer', css_class='col-md-6'),
+                Column('discount_percentage', css_class='col-md-6'),
+            ),
             Submit('submit', 'Save', css_class='btn btn-primary mt-2'),
         )
 
