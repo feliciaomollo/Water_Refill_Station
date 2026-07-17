@@ -37,6 +37,46 @@
     </div>
 </div>
 
+<!-- Frequent Customers -->
+{% if frequent_customers %}
+<h4 class="mb-3">Frequent Customers</h4>
+<div class="table-responsive mb-4">
+<table class="table">
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Location</th>
+            <th>Purchases (30 days)</th>
+            <th>Discount</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for customer in frequent_customers %}
+        <tr>
+            <td>
+                <span class="avatar">{{ customer.name|slice:":2"|upper }}</span>
+                {{ customer.name }}
+            </td>
+            <td>{{ customer.location }}</td>
+            <td><span class="badge-frequent">{{ customer.purchase_count }} purchases</span></td>
+            <td>
+                {% if customer.discount_percentage > 0 %}
+                    <span class="badge-frequent">{{ customer.discount_percentage }}% off</span>
+                {% else %}
+                    <span style="color: var(--text-muted);">No discount</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'customer_update' customer.pk %}" class="btn-teal-outline">Reward</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endif %}
+
 <!-- Tank Level -->
 {% if latest_tank %}
 <div class="tank-widget mb-4">

@@ -1,7 +1,7 @@
-from datetime import date
+from datetime import date, timedelta
 from decouple import config
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, ProtectedError, Q
+from django.db.models import Sum, ProtectedError, Q, Count, Max
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -17,7 +17,29 @@ def test_base(request):
 
 @login_required #if the user isn't logged in, Django automatically redirects them to the login page. If they are logged in, the view runs normally.
 def customer_list(request):
-    customers = Customer.objects.all()   
+    today = date.today()
+    thirty_days_ago = today - timedelta(days=30)
+    ninety_days_ago = today - timedelta(days=90)
+
+    customers = Customer.objects.annotate(
+        total_purchases=Count('sale', filter=Q(sale__is_cancelled=False)),
+        recent_purchases=Count('sale', filter=Q(
+            sale__is_cancelled=False,
+            sale__date__date__gte=thirty_days_ago
+        )),
+        last_purchase=Max('sale__date', filter=Q(sale__is_cancelled=False))
+    )
+
+    for customer in customers:
+        if customer.total_purchases == 0:
+            customer.activity_status = 'never'
+        elif customer.recent_purchases >= 4:
+            customer.activity_status = 'frequent'
+        elif customer.last_purchase and customer.last_purchase.date() >= ninety_days_ago:
+            customer.activity_status = 'active'
+        else:
+            customer.activity_status = 'inactive'
+
     return render(request, 'shop/customer_list.html', {'customers': customers})
 
 @login_required
@@ -101,8 +123,10 @@ def sale_create(request):
     if request.method == 'POST':
         form = SaleForm(request.POST)
         if form.is_valid():
-            sale = form.save(commit=False)  
-            sale.total_amount = sale.quantity * sale.product.price
+            sale = form.save(commit=False)
+            base_total = sale.quantity * sale.product.price
+            discount = base_total * (sale.customer.discount_percentage / 100)
+            sale.total_amount = base_total - discount
             sale.save()
             messages.success(request, f"Sale recorded — KES {sale.total_amount} total.")
             return redirect('sale_list')
@@ -121,8 +145,10 @@ def sale_update(request, pk):
     if request.method == 'POST':
         form = SaleForm(request.POST, instance=sale)
         if form.is_valid():
-            sale = form.save(commit=False)  
-            sale.total_amount = sale.quantity * sale.product.price
+            sale = form.save(commit=False)
+            base_total = sale.quantity * sale.product.price
+            discount = base_total * (sale.customer.discount_percentage / 100)
+            sale.total_amount = base_total - discount
             sale.save()
             messages.success(request, "Sale updated successfully.")
             return redirect('sale_list')
@@ -177,6 +203,14 @@ def dashboard(request):
     outstanding_amount = Sale.objects.filter(
         is_paid=False, is_cancelled=False
     ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    thirty_days_ago = date.today() - timedelta(days=30)
+
+    frequent_customers = Customer.objects.annotate(
+        purchase_count=Count('sale', filter=Q(
+            sale__is_cancelled=False,
+            sale__date__date__gte=thirty_days_ago
+        ))
+    ).filter(purchase_count__gte=4).order_by('-purchase_count')[:5]
 
     # Latest tank level
     latest_tank = TankLevel.objects.order_by('-recorded_at').first()
@@ -190,6 +224,7 @@ def dashboard(request):
         'outstanding_amount': outstanding_amount,
         'products': products,
         'latest_tank': latest_tank,
+        'frequent_customers': frequent_customers,
     }
     return render(request, 'shop/dashboard.html', context)
 
