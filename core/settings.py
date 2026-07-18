@@ -146,3 +146,4 @@ MESSAGE_TAGS = {
     messages_constants.WARNING: 'warning',
     messages_constants.ERROR:   'danger',
 }
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
