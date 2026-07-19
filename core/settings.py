@@ -28,7 +28,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
 
 
 # Application definition
@@ -147,3 +147,13 @@ MESSAGE_TAGS = {
     messages_constants.ERROR:   'danger',
 }
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Security settings — only active in production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True #Forces all HTTP requests to HTTPS
+    SESSION_COOKIE_SECURE = True #Session cookie only sent over HTTPS
+    CSRF_COOKIE_SECURE = True #CSRF token only sent over HTTPS
+    SECURE_HSTS_SECONDS = 31536000 #Tells browsers to always use HTTPS for 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True #Applies HSTS to subdomains too
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True #Prevents browsers from guessing content types

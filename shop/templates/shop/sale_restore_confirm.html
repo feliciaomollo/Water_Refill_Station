@@ -1,0 +1,16 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Restore Sale | Water Shop{% endblock %}
+
+{% block content %}
+<h2>Restore Sale</h2>
+
+<p>Are you sure you want to restore the sale for <strong>{{ sale.customer }}</strong> — <strong>{{ sale.product }}</strong> on {{ sale.date|date:"d M Y" }}?</p>
+<p style="color: var(--text-muted); font-size: 0.875rem;">This sale will be marked as active again and included in revenue and debt calculations.</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Yes, restore sale</button>
+    <a href="{% url 'sale_list' %}" class="btn btn-secondary ms-2">Go back</a>
+</form>
+{% endblock %}
