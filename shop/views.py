@@ -3,17 +3,22 @@ from decouple import config
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, ProtectedError, Q, Count, Max
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.paginator import Paginator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from django.contrib import messages
 from .models import Customer, Product, Sale, TankLevel
 from .forms import CustomerForm, ProductForm, SaleForm, TankLevelForm
 from .sms import send_sms
 from .serializers import TankLevelSerializer
 
-def test_base(request):
-    return render(request, 'shop/base.html')
+def calculate_sale_total(quantity, price, discount_percentage):
+    base_total = quantity * price
+    discount = base_total * (discount_percentage / 100)
+    return base_total - discount
 
 @login_required #if the user isn't logged in, Django automatically redirects them to the login page. If they are logged in, the view runs normally.
 def customer_list(request):
@@ -124,9 +129,11 @@ def sale_create(request):
         form = SaleForm(request.POST)
         if form.is_valid():
             sale = form.save(commit=False)
-            base_total = sale.quantity * sale.product.price
-            discount = base_total * (sale.customer.discount_percentage / 100)
-            sale.total_amount = base_total - discount
+            sale.total_amount = calculate_sale_total(
+                sale.quantity,
+                sale.product.price,
+                sale.customer.discount_percentage
+            )
             sale.save()
             messages.success(request, f"Sale recorded — KES {sale.total_amount} total.")
             return redirect('sale_list')
@@ -134,9 +141,13 @@ def sale_create(request):
         form = SaleForm()
     return render(request, 'shop/sale_form.html', {'form': form})
 
-@login_required
+from django.core.paginator import Paginator
+
 def sale_list(request):
-    sales = Sale.objects.all()
+    sales_queryset = Sale.objects.all().order_by('-date')
+    paginator = Paginator(sales_queryset, 25)
+    page = request.GET.get('page')
+    sales = paginator.get_page(page)
     return render(request, 'shop/sale_list.html', {'sales': sales})
 
 @login_required
@@ -146,9 +157,11 @@ def sale_update(request, pk):
         form = SaleForm(request.POST, instance=sale)
         if form.is_valid():
             sale = form.save(commit=False)
-            base_total = sale.quantity * sale.product.price
-            discount = base_total * (sale.customer.discount_percentage / 100)
-            sale.total_amount = base_total - discount
+            sale.total_amount = calculate_sale_total(
+                sale.quantity,
+                sale.product.price,
+                sale.customer.discount_percentage
+            )
             sale.save()
             messages.success(request, "Sale updated successfully.")
             return redirect('sale_list')
@@ -183,7 +196,7 @@ def sale_restore(request, pk):
         sale.save()
         messages.success(request, f"Sale for {sale.customer.name} has been restored.")
         return redirect('sale_list')
-    return redirect('sale_list')
+    return render(request, 'shop/sale_restore_confirm.html', {'sale': sale})
 
 @login_required
 def dashboard(request):
@@ -231,15 +244,15 @@ def dashboard(request):
 @login_required
 def debt_list(request):
     customers_in_debt = Customer.objects.filter(
-    sale__is_paid=False,
-    sale__is_cancelled=False
-    ).annotate(
-        total_owed=Sum('sale__total_amount',
-        filter=Q(sale__is_paid=False, sale__is_cancelled=False))
-    ).distinct()
+        sale__is_paid=False,
+        sale__is_cancelled=False
+        ).annotate(
+            total_owed=Sum('sale__total_amount',
+            filter=Q(sale__is_paid=False, sale__is_cancelled=False))
+        ).distinct()
 
-    context = {'customers_in_debt': customers_in_debt}
-    return render(request, 'shop/debt_list.html', context)
+        context = {'customers_in_debt': customers_in_debt}
+        return render(request, 'shop/debt_list.html', context)
 
 @login_required
 def mark_paid(request, pk):
@@ -257,7 +270,10 @@ def mark_paid(request, pk):
 def send_sms_view(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     if request.method == 'POST':
-        message = request.POST.get('message')
+        message = request.POST.get('message', '').strip()
+        if not message or len(message) > 160:
+            messages.error(request, "Message must be between 1 and 160 characters.")
+            return render(request, 'shop/send_sms.html', {'customer': customer})
         phone = customer.phone_number
         result = send_sms(phone, message)
         if result['success']:
@@ -270,6 +286,8 @@ def send_sms_view(request, pk):
 
 #only works on function-based views 
 class TankLevelAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = TankLevelSerializer(data=request.data)
         if serializer.is_valid():

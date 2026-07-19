@@ -44,12 +44,9 @@
                 {% endif %}
             </td>
             <td>{{ sale.date|date:"d M Y" }}</td>
-            <td>
+           <td>
                 {% if sale.is_cancelled %}
-                    <form method="post" action="{% url 'sale_restore' sale.pk %}" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-success-outline">Restore</button>
-                    </form>
+                    <a href="{% url 'sale_restore' sale.pk %}" class="btn-success-outline">Restore</a>
                 {% else %}
                     <a href="{% url 'sale_update' sale.pk %}" class="btn-teal-outline">Edit</a>
                     <a href="{% url 'sale_cancel' sale.pk %}" class="btn-warning btn-sm ms-1" style="border-radius:8px; padding: 0.3rem 0.85rem; font-size: 0.8rem;">Cancel</a>
