@@ -1,5 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
+from django.views.generic import TemplateView
 from . import views
 from .views import TankLevelAPIView
 
@@ -50,6 +51,10 @@ urlpatterns = [
             template_name='shop/password_reset_complete.html'
         ), 
         name='password_reset_complete'),
+    path('robots.txt', TemplateView.as_view(
+    template_name='robots.txt',
+    content_type='text/plain'
+), name='robots_txt'),   
 ]
 
 

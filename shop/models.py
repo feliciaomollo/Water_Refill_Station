@@ -27,14 +27,20 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.size} - KES {self.price}"
     
-class Sale(models.Model): #The ORM automatically handles the plural (sales) for database table naming and admin display.
+class Sale(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.IntegerField(default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     is_paid = models.BooleanField(default=False)
-    date = models.DateTimeField(auto_now_add=True)
     is_cancelled = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['date']), #speeds up the dashboard query that filters Sale.objects.filter(date__date=today). Without this, PostgreSQL scans every row in the table to find today's sales. With the index, it jumps directly to the right rows.
+            models.Index(fields=['is_paid', 'is_cancelled']), #a composite index covering both fields together. Since your debt tracking query always filters on both (is_paid=False, is_cancelled=False), a composite index covering both is more efficient than two separate single-field indexes.
+        ]
 
     def __str__(self):
         return f"{self.customer} - {self.product} on {self.date}"
