@@ -246,13 +246,13 @@ def debt_list(request):
     customers_in_debt = Customer.objects.filter(
         sale__is_paid=False,
         sale__is_cancelled=False
-        ).annotate(
-            total_owed=Sum('sale__total_amount',
-            filter=Q(sale__is_paid=False, sale__is_cancelled=False))
-        ).distinct()
+    ).annotate(
+        total_owed=Sum('sale__total_amount',
+        filter=Q(sale__is_paid=False, sale__is_cancelled=False))
+    ).distinct()
 
-        context = {'customers_in_debt': customers_in_debt}
-        return render(request, 'shop/debt_list.html', context)
+    context = {'customers_in_debt': customers_in_debt}
+    return render(request, 'shop/debt_list.html', context)
 
 @login_required
 def mark_paid(request, pk):
