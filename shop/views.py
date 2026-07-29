@@ -20,7 +20,7 @@ def calculate_sale_total(quantity, price, discount_percentage):
     discount = base_total * (discount_percentage / 100)
     return base_total - discount
 
-@login_required #if the user isn't logged in, Django automatically redirects them to the login page. If they are logged in, the view runs normally.
+#@login_required #if the user isn't logged in, Django automatically redirects them to the login page. If they are logged in, the view runs normally.
 def customer_list(request):
     today = date.today()
     thirty_days_ago = today - timedelta(days=30)
