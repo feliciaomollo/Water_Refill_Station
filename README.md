@@ -62,8 +62,17 @@ My friend runs a water refilling shop, which I worked in a few weeks back and wa
 
 ## Screenshots
 
-*(Add screenshots of the dashboard, sales page, and debt tracking page here before sharing.)*
+### Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
 
+### Sales
+![Sales](docs/screenshots/sales.png)
+
+### Debt Tracking
+![Debt Tracking](docs/screenshots/debt-tracking.png)
+
+### Login
+![Login](docs/screenshots/login.png)
 ## Local Setup
 
 These instructions assume macOS with Homebrew.
