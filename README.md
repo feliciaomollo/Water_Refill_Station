@@ -63,16 +63,23 @@ My friend runs a water refilling shop, which I worked in a few weeks back and wa
 ## Screenshots
 
 ### Dashboard
-![dashboard](docs/screenshots/dashboard.png)
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Customers
+![Customers](docs/screenshots/customers.png)
+
+### Products
+![Products](docs/screenshots/products.png)
 
 ### Sales
-![sales](docs/screenshots/sales.png)
+![Sales](docs/screenshots/sales.png)
 
 ### Debt Tracking
 ![Debt Tracking](docs/screenshots/debt-tracking.png)
 
 ### Login
 ![Login](docs/screenshots/login.png)
+
 ## Local Setup
 
 These instructions assume macOS with Homebrew.
