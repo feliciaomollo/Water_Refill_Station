@@ -1,52 +1,68 @@
 # Water Refill Station
 
-A Django web application built to manage day-to-day operations for a water refilling business that sells 1L, 5L, 10L, and 20L containers. This project is based on a real business I run, and is being developed as a structured, four-week portfolio build.
+A full-stack Django web application built to manage daily operations for a water refilling business. This project is based on a real business my friend runs, and was developed over a structured multi-week build covering backend logic, database design, third-party API integration, UI/UX design, and production deployment.
 
-The goal is to move the business from manual tracking to a proper system that handles customers, sales, credit/debt, stock, and eventually delivery and tank-level monitoring.
+**Live demo:** https://water-refill-station.onrender.com
+
+**Demo login:** Username `demo` · Password `WaterDemo2026`
+
+*(Note: the free-tier database resets periodically — if the demo looks empty, the data may need reseeding.)*
 
 ## Motivation
 
-I run a water refilling shop and wanted to solve a real operational problem: tracking who owes money, knowing when stock is low, and eventually being able to message customers directly about debts, shop hours, or promotions. Rather than build a generic tutorial project, this app is shaped around the actual day-to-day needs of the business.
+My friend runs a water refilling shop, which I worked in a few weeks back and wanted to solve real operational problems: tracking who owes money, knowing when stock is low, sending customers reminders about debts or promotions, and eventually monitoring tank levels without manually checking. Rather than build a generic tutorial project, this app is shaped around the actual day-to-day needs of the business.
 
 ## Tech Stack
 
 - **Backend:** Django 5.2
-- **Database:** PostgreSQL 16
-- **Frontend:** Bootstrap 5.3
-- **Environment management:** python-decouple (for `.env` based configuration)
-- **API (planned):** Django REST Framework, for the tank-level monitoring endpoint and future integrations
-- **SMS (planned):** Africa's Talking API, for customer messaging and debt reminders
+- **Database:** PostgreSQL
+- **Frontend:** Bootstrap 5.3, django-crispy-forms, custom CSS theme
+- **API:** Django REST Framework (tank level monitoring endpoint)
+- **SMS:** Africa's Talking API (debt reminders, low-tank alerts)
+- **Deployment:** Render (web service + managed PostgreSQL)
+- **Static files:** WhiteNoise
+- **Environment management:** python-decouple
 
-## Project Status
+## Features
 
-This project is being built over four weeks. Current progress:
+### Customer Management
+- Full CRUD for customer records (name, phone, location, credit status)
+- Activity tracking — customers automatically tagged as Frequent, Active, Inactive, or Never Returned based on purchase history
+- Discount field for rewarding frequent customers, applied automatically to future sales
 
-- [x] Project setup, virtual environment, and PostgreSQL connection
-- [x] Bootstrap base layout with sidebar navigation
-- [ ] Customer model and management (in progress)
-- [ ] Product model and stock tracking
-- [ ] Sales recording with credit/debt tracking
-- [ ] Dashboard with daily sales summary
-- [ ] SMS integration for customer messaging
-- [ ] Tank level monitoring (software-first, hardware integration later)
-- [ ] Authentication and deployment
+### Product Management
+- Manage the four container sizes (1L, 5L, 10L, 20L), pricing, and stock levels
+- Low-stock and critical-stock visual indicators
 
-## Planned Features
+### Sales Tracking
+- Record sales with auto-calculated totals (including any customer discount)
+- Mark sales as paid or unpaid
+- Cancel and restore sales without permanently losing the record (soft-cancel, not delete)
 
-**Customer management**
-Track customers, including those who pay on credit, and identify who currently owes money.
+### Debt Tracking
+- Filter all customers with outstanding balances
+- One-click "mark as paid" to clear a customer's debt
+- Send a customized SMS reminder directly to a customer via Africa's Talking
 
-**Product management**
-Manage the four container sizes, their prices, and stock levels.
+### Dashboard
+- Live stats: today's sales, today's revenue, unpaid sales, outstanding amount
+- Frequent customers widget with reward shortcuts
+- Current tank level with color-coded status and manual logging
+- Stock summary across all products
 
-**Sales tracking**
-Record sales, calculate totals automatically, and flag whether a sale was paid or is outstanding.
+### Tank Level Monitoring
+- REST API endpoint (Django REST Framework) built to accept readings from an IoT sensor (ESP32 + ultrasonic sensor) in the future
+- Manual entry option for the shop owner in the meantime
+- Automatic low-level SMS alert when the tank drops below 20%
 
-**Customer messaging**
-Filter customers who are in debt and send them a customized message, for example about shop hours over the holidays or available discounts. Built using the Africa's Talking SMS API.
+### Authentication
+- Login and logout with Django's built-in auth system
+- Full password reset flow with custom-styled templates
+- All application views protected behind login
 
-**Tank level monitoring**
-Track water tank levels so the shop owner knows when stock is running low and a refill needs to be arranged. The system is designed so that tank readings can initially be entered manually or via a script, and later replaced with real sensor hardware (ultrasonic sensor and a WiFi-enabled microcontroller) without changing the underlying application.
+## Screenshots
+
+*(Add screenshots of the dashboard, sales page, and debt tracking page here before sharing.)*
 
 ## Local Setup
 
@@ -77,10 +93,10 @@ source venv/bin/activate
 Install dependencies:
 
 ```bash
-pip install django psycopg2-binary python-decouple djangorestframework
+pip install -r requirements.txt
 ```
 
-Create a `.env` file in the project root with the following variables:
+Create a `.env` file in the project root:
 
 ```
 SECRET_KEY=your-secret-key
@@ -90,6 +106,11 @@ DB_USER=your-postgres-username
 DB_PASSWORD=
 DB_HOST=localhost
 DB_PORT=5432
+ALLOWED_HOSTS=127.0.0.1,localhost
+AT_USERNAME=sandbox
+AT_API_KEY=your-africas-talking-key
+OWNER_PHONE=+254XXXXXXXXX
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ```
 
 Create the PostgreSQL database:
@@ -112,40 +133,52 @@ python manage.py runserver
 
 The app will be available at `http://127.0.0.1:8000/`.
 
+## Deployment
+
+Deployed on Render as a web service connected to a managed PostgreSQL database. Key production configuration:
+
+- `DEBUG=False` with full HTTPS enforcement (SSL redirect, secure cookies, HSTS)
+- WhiteNoise for serving static files without a separate CDN
+- Gunicorn as the production WSGI server
+- Environment variables managed through Render's dashboard, mirroring the local `.env` structure
+
 ## Project Structure
 
 ```
 water_shop/
 ├── core/           # Project configuration (settings, URLs, WSGI)
-├── shop/           # Main application (models, views, templates)
+├── shop/           # Main application
+│   ├── models.py
+│   ├── views.py
+│   ├── forms.py
+│   ├── serializers.py
+│   ├── sms.py
 │   ├── templates/shop/
 │   └── static/shop/
 ├── manage.py
-├── .env            # Not committed; holds local secrets and DB credentials
-└── .gitignore
+├── requirements.txt
+├── Procfile
+└── .env            # Not committed; holds local secrets and DB credentials
 ```
 
 ## Development Workflow
 
 This project follows a feature-branch workflow:
 
-1. Create a branch for each feature (e.g. `feature/customer-model`)
+1. Create a branch for each feature (e.g. `feature/customer-analytics`)
 2. Commit work incrementally with descriptive messages
 3. Push the branch and open a pull request into `main`
 4. Review the diff, merge, and sync local `main`
 
-This keeps `main` in a stable, working state throughout development.
+This kept `main` in a stable, working state throughout development, with each feature isolated and reviewable in its own pull request.
 
 ## Roadmap
 
-Beyond the initial four-week build, planned additions include:
-
-- M-Pesa payment integration
-- WhatsApp or SMS delivery notifications
-- Bottle deposit tracking
-- Expense and profit/loss reporting
-- A REST API for potential mobile access
-- Docker-based deployment
+- M-Pesa STK Push integration for direct customer payments
+- IoT hardware integration (ESP32 + ultrasonic sensor) for automated tank level readings
+- Search and filtering on customer and sales list pages
+- Pagination for large datasets
+- Automated test coverage
 
 ## Author
 
