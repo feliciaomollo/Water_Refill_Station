@@ -63,10 +63,10 @@ My friend runs a water refilling shop, which I worked in a few weeks back and wa
 ## Screenshots
 
 ### Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
+![dashboard](docs/screenshots/dashboard.png)
 
 ### Sales
-![Sales](docs/screenshots/sales.png)
+![sales](docs/screenshots/sales.png)
 
 ### Debt Tracking
 ![Debt Tracking](docs/screenshots/debt-tracking.png)
