@@ -15,10 +15,7 @@ phone_regex = RegexValidator(
 
 class Customer(models.Model):
     name = models.CharField(max_length=255)
-    phone_number = models.CharField(
-        max_length=15,
-        validators=[phone_regex]
-    )
+    phone_number = models.CharField(max_length=15, validators=[phone_regex])
     location = models.CharField(max_length=255)
     is_credit_customer = models.BooleanField(default=False)
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
