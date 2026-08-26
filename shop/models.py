@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import RegexValidator
 
 SIZE_CHOICES = [
     ('1L', '1 Litre'),
@@ -7,13 +8,16 @@ SIZE_CHOICES = [
     ('20L', '20 Litres'),
 ]
 
-# Create your models here.
+phone_regex = RegexValidator(
+    regex=r'^\+?254\d{9}$',
+    message="Phone number must be in the format: +254XXXXXXXXX or 254XXXXXXXXX"
+)
+
 class Customer(models.Model):
     name = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=15, validators=[phone_regex])
     location = models.CharField(max_length=255)
     is_credit_customer = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 
     def __str__(self):
@@ -28,7 +32,7 @@ class Product(models.Model):
         return f"{self.size} - KES {self.price}"
     
 class Sale(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name = "client")
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.IntegerField(default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
