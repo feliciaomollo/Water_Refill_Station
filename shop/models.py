@@ -32,7 +32,7 @@ class Product(models.Model):
         return f"{self.size} - KES {self.price}"
     
 class Sale(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name = "client")
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name = "sale")
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.IntegerField(default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)

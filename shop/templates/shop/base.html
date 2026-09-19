@@ -10,11 +10,11 @@
     <link rel="stylesheet" href="{% static 'shop/style.css' %}">
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-2 d-none d-md-block sidebar min-vh-100 p-0">
+    <div class="container-fluid"> <!--For container to be 100% width for its breakpoint instead of lg or md-->
+        <div class="row"> <!--A row uses flexbox to lay everything up horizontally on the navigation-->
+            <nav class="col-md-2 d-none d-md-block sidebar min-vh-100 p-0"> <!--On a medium screen it takes 2 columns wide, d-none is hidden screen, hide element on medium screen sizes and -->
                 <div class="position-sticky pt-3">
-                    <h5>💧 Water Shop</h5>
+                    <h5>Water Shop</h5>
                     <ul class="nav flex-column px-2">
                         <li class="nav-item">
                             <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}"
