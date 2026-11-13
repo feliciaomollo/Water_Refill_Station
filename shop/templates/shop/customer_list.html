@@ -66,6 +66,27 @@
             {% endfor %}
         </tbody>
     </table>
+    {% if customer.has_other_pages %}
+<nav class="mt-3">
+    <ul class="pagination">
+        {% if customer.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ customer.previous_page_number }}">Previous</a>
+        </li>
+        {% endif %}
+
+        <li class="page-item disabled">
+            <span class="page-link">Page {{ customer.number }} of {{ customer.paginator.num_pages }}</span>
+        </li>
+
+        {% if customer.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ customer.next_page_number }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 </div>
 {% else %}
 <div style="background: var(--white); border-radius: var(--radius); padding: 3rem; text-align: center; box-shadow: var(--shadow); border: 1.5px dashed var(--teal-light);">

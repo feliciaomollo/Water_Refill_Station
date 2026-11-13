@@ -1,5 +1,7 @@
 from datetime import date, timedelta
 from decouple import config
+from django.core.cache import cache
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, ProtectedError, Q, Count, Max
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,7 +11,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from django.contrib import messages
 from .models import Customer, Product, Sale, TankLevel
 from .forms import CustomerForm, ProductForm, SaleForm, TankLevelForm
 from .sms import send_sms
@@ -26,7 +27,7 @@ def customer_list(request):
     thirty_days_ago = today - timedelta(days=30)
     ninety_days_ago = today - timedelta(days=90)
 
-    customers = Customer.objects.annotate(
+    customers_queryset = Customer.objects.annotate(
         total_purchases=Count('sale', filter=Q(sale__is_cancelled=False)),
         recent_purchases=Count('sale', filter=Q(
             sale__is_cancelled=False,
@@ -35,7 +36,7 @@ def customer_list(request):
         last_purchase=Max('sale__date', filter=Q(sale__is_cancelled=False))
     )
 
-    for customer in customers:
+    for customer in customers_queryset:
         if customer.total_purchases == 0:
             customer.activity_status = 'never'
         elif customer.recent_purchases >= 4:
@@ -44,6 +45,10 @@ def customer_list(request):
             customer.activity_status = 'active'
         else:
             customer.activity_status = 'inactive'
+
+    paginator = Paginator(customers_queryset, 20)
+    page_number = request.GET.get('page')
+    customers = paginator.get_page(page_number)
 
     return render(request, 'shop/customer_list.html', {'customers': customers})
 
@@ -141,13 +146,13 @@ def sale_create(request):
         form = SaleForm()
     return render(request, 'shop/sale_form.html', {'form': form})
 
-from django.core.paginator import Paginator
 
+@login_required
 def sale_list(request):
     sales_queryset = Sale.objects.all().order_by('-date')
-    paginator = Paginator(sales_queryset, 25)
-    page = request.GET.get('page')
-    sales = paginator.get_page(page)
+    paginator = Paginator(sales_queryset, 20)  # 20 sales per page
+    page_number = request.GET.get('page')
+    sales = paginator.get_page(page_number)
     return render(request, 'shop/sale_list.html', {'sales': sales})
 
 @login_required
@@ -200,44 +205,51 @@ def sale_restore(request, pk):
 
 @login_required
 def dashboard(request):
-    today = date.today()
-    today_sales_count = Sale.objects.filter(
-        date__date=today, is_cancelled=False
-    ).count()
+    cached_data = cache.get('dashboard_stats')
 
-    today_revenue = Sale.objects.filter(
-        date__date=today, is_cancelled=False
-    ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    if cached_data is None:
+        today = date.today()
+        today_sales_count = Sale.objects.filter(
+            date__date=today, is_cancelled=False
+        ).count()
 
-    unpaid_count = Sale.objects.filter(
-        is_paid=False, is_cancelled=False
-    ).count()
+        today_revenue = Sale.objects.filter(
+            date__date=today, is_cancelled=False
+        ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
 
-    outstanding_amount = Sale.objects.filter(
-        is_paid=False, is_cancelled=False
-    ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    thirty_days_ago = date.today() - timedelta(days=30)
+        unpaid_count = Sale.objects.filter(
+            is_paid=False, is_cancelled=False
+        ).count()
 
-    frequent_customers = Customer.objects.annotate(
-        purchase_count=Count('sale', filter=Q(
-            sale__is_cancelled=False,
-            sale__date__date__gte=thirty_days_ago
-        ))
-    ).filter(purchase_count__gte=4).order_by('-purchase_count')[:5]
+        outstanding_amount = Sale.objects.filter(
+            is_paid=False, is_cancelled=False
+        ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
 
-    # Latest tank level
+        thirty_days_ago = date.today() - timedelta(days=30)
+        frequent_customers = list(Customer.objects.annotate(
+            purchase_count=Count('sale', filter=Q(
+                sale__is_cancelled=False,
+                sale__date__date__gte=thirty_days_ago
+            ))
+        ).filter(purchase_count__gte=4).order_by('-purchase_count')[:5])
+
+        cached_data = {
+            'today_sales_count': today_sales_count,
+            'today_revenue': today_revenue,
+            'unpaid_count': unpaid_count,
+            'outstanding_amount': outstanding_amount,
+            'frequent_customers': frequent_customers,
+        }
+
+        cache.set('dashboard_stats', cached_data, 300)  # cache for 5 minutes
+
     latest_tank = TankLevel.objects.order_by('-recorded_at').first()
-
     products = Product.objects.all()
 
     context = {
-        'today_sales_count': today_sales_count,
-        'today_revenue': today_revenue,
-        'unpaid_count': unpaid_count,
-        'outstanding_amount': outstanding_amount,
+        **cached_data,
         'products': products,
         'latest_tank': latest_tank,
-        'frequent_customers': frequent_customers,
     }
     return render(request, 'shop/dashboard.html', context)
 
