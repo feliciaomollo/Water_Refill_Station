@@ -195,3 +195,8 @@ LOGGING = {
         },
     },
 }
+CACHES = { #Django's built-in local memory cache is enough — no need for Redis/Memcached yet. local memory cache lives inside a single process's memory — it works fine for one server, but won't be shared across multiple Gunicorn workers or multiple server instances. For real production scale, you'd eventually want Redis instead. This is a fine starting point and worth mentioning as a known limitation if asked.
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
