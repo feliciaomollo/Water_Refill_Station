@@ -57,7 +57,9 @@ class Command(BaseCommand):
         for idx, size, qty, paid, days_ago in sales:
             customer, product = customers[idx], products[size]
             base = qty * product.price
-            total = base - base * (customer.discount_percentage / 100)
+            discount_rate = Decimal(str(customer.discount_percentage)) / Decimal("100")
+
+            total = base - (base * discount_rate)
             sale = Sale.objects.create(customer=customer, product=product, quantity=qty,
                                        total_amount=total, is_paid=paid)
             # `date` is auto_now_add, so backdate it with update()
